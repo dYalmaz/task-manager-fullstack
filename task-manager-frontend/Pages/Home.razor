@@ -32,13 +32,24 @@ else
         {
             <li class="list-group-item d-flex justify-content-between align-items-center">
                 <div>
-                    <strong>@task.Title</strong> - <span class="badge bg-info">@task.Status</span>
+                    <strong style='text-decoration: @(task.Status == "DONE" ? "line-through" : "none")'>
+                        @task.Title
+                    </strong> 
+                    - <span class="badge @(task.Status == "DONE" ? "bg-success" : "bg-info")">@task.Status</span>
                     <p class="mb-0 text-muted">@task.Description</p>
                 </div>
                 
-                <button class="btn btn-danger btn-sm" @onclick="() => DeleteTask(task.Id ?? 0)">
-                    Delete
-                </button>
+                <div>
+                    @if (task.Status != "DONE")
+                    {
+                        <button class="btn btn-outline-success btn-sm me-2" @onclick="() => MarkAsDone(task)">
+                            Done
+                        </button>
+                    }
+                    <button class="btn btn-danger btn-sm" @onclick="() => DeleteTask(task.Id!.Value)">
+                        Delete
+                    </button>
+                </div>
             </li>
         }
     </ul>
@@ -52,8 +63,6 @@ else
     {
         await LoadTasks();
     }
-
-    
 
     private async Task LoadTasks()
     {
@@ -88,6 +97,20 @@ else
         if (response.IsSuccessStatusCode)
         {
             await LoadTasks(); // Re-fetch the list to hide the deleted task
+        }
+    }
+
+    private async Task MarkAsDone(TaskItem task)
+    {
+        // Update the status locally
+        task.Status = "DONE";
+
+        // Send the PUT request to /api/tasks/{id}
+        var response = await Http.PutAsJsonAsync($"http://localhost:8080/api/tasks/{task.Id}", task);
+
+        if (response.IsSuccessStatusCode)
+        {
+            await LoadTasks();
         }
     }
 }
