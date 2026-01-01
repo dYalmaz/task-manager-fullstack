@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import jakarta.validation.Valid;
 
+@CrossOrigin(origins = "http://localhost:5011")
 @RestController
 @RequestMapping("/api/tasks") // All links will start with /api/tasks
 public class TaskController {
