@@ -35,4 +35,19 @@ public class TaskController {
         taskRepository.deleteById(id);
     }
 
+    @PutMapping("/{id}")
+    public Task updateTask(@PathVariable Long id, @Valid @RequestBody Task taskDetails) {
+        // Search for the existing task. If it's not there, throw an error.
+        Task task = taskRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Task not found with id: " + id));
+
+        // Update the fields
+        task.setTitle(taskDetails.getTitle());
+        task.setDescription(taskDetails.getDescription());
+        task.setStatus(taskDetails.getStatus());
+
+        // Save the updated task back to the database
+        return taskRepository.save(task);
+    }
+
 }
