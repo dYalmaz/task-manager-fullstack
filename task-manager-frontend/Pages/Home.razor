@@ -33,53 +33,46 @@ else
         </button>
     </div>
 
-    <ul class="list-group">
+    <div class="task-sections">
         @{
-            // Create a filtered list once per render so indexing matches what the user sees
-            var displayList = tasks?.Where(t => showCompleted || t.Status != "DONE").ToList() ?? new List<TaskItem>();
+            var visibleTasks = tasks?.Where(t => showCompleted || t.Status != "DONE").ToList() ?? new List<TaskItem>();
+            
+            var activeTasks = visibleTasks.Where(t => t.Status != "DONE").ToList();
+            var completedTasks = visibleTasks.Where(t => t.Status == "DONE").ToList();
         }
 
-        @for (int i = 0; i < displayList.Count; i++)
+        <h6 class="text-uppercase text-muted fw-bold mb-3">Active Tasks (@activeTasks.Count)</h6>
+        <ul class="list-group mb-5">
+            @for (int i = 0; i < activeTasks.Count; i++)
+            {
+                var task = activeTasks[i];
+                int index = i;
+                <li class="list-group-item d-flex justify-content-between align-items-center shadow-sm mb-2 rounded">
+                    @RenderTaskItem(activeTasks, task, index)
+                </li>
+            }
+        </ul>
+
+        @if (completedTasks.Any())
         {
-            var task = displayList[i];
-            int index = i; // Capture index for the lambda buttons
+            <div class="d-flex align-items-center my-4">
+                <hr class="flex-grow-1">
+                <span class="mx-3 text-muted fw-bold">COMPLETED (@completedTasks.Count)</span>
+                <hr class="flex-grow-1">
+            </div>
 
-            <li class="list-group-item d-flex justify-content-between align-items-center">
-                <div class="d-flex align-items-center">
-                    <div class="me-3 d-flex flex-column">
-                        @if (index > 0)
-                        {
-                            <button class="btn btn-link btn-sm p-0 text-decoration-none" @onclick="() => MoveTask(displayList, index, -1)">▲</button>
-                        }
-                        @if (index < displayList.Count - 1)
-                        {
-                            <button class="btn btn-link btn-sm p-0 text-decoration-none" @onclick="() => MoveTask(displayList, index, 1)">▼</button>
-                        }
-                    </div>
-
-                    <div>
-                        <strong style='text-decoration: @(task.Status == "DONE" ? "line-through" : "none")'>
-                            (@task.SortOrder)@task.Title
-                        </strong> 
-                        - <span class="badge @(task.Status == "DONE" ? "bg-success" : "bg-info")">@task.Status</span>
-                        <p class="mb-0 text-muted">@task.Description</p>
-                    </div>
-                </div>
-                
-                <div>
-                    @if (task.Status != "DONE")
-                    {
-                        <button class="btn btn-outline-success btn-sm me-2" @onclick="() => MarkAsDone(task)">
-                            Done
-                        </button>
-                    }
-                    <button class="btn btn-danger btn-sm" @onclick="() => DeleteTask(task.Id!.Value)">
-                        Delete
-                    </button>
-                </div>
-            </li>
+            <ul class="list-group opacity-75">
+                @for (int i = 0; i < completedTasks.Count; i++)
+                {
+                    var task = completedTasks[i];
+                    int index = i;
+                    <li class="list-group-item d-flex justify-content-between align-items-center bg-light mb-1 rounded">
+                        @RenderTaskItem(completedTasks, task, index)
+                    </li>
+                }
+            </ul>
         }
-    </ul>
+    </div>
 }
 
 @code {
@@ -107,6 +100,9 @@ else
     {
         // basic validation
         if (string.IsNullOrWhiteSpace(newTask.Title)) return;
+
+        int maxOrder = tasks != null && tasks.Any() ? tasks.Max(t => t.SortOrder) : -1;
+        newTask.SortOrder = maxOrder + 1;
 
         // send the POST request to the Java API
         var response = await Http.PostAsJsonAsync("http://localhost:8080/api/tasks", newTask);
@@ -149,30 +145,52 @@ else
     }
 
 
-    private async Task MoveTask(List<TaskItem> currentDisplayList, int currentIndex, int direction)
+    private async Task MoveTask(List<TaskItem> list, int currentIndex, int direction)
     {
         int targetIndex = currentIndex + direction;
-        if (targetIndex < 0 || targetIndex >= currentDisplayList.Count) return;
+        if (targetIndex < 0 || targetIndex >= list.Count) return;
 
-        var currentTask = currentDisplayList[currentIndex];
-        var targetTask = currentDisplayList[targetIndex];
+        var current = list[currentIndex];
+        var target = list[targetIndex];
 
-        // Perform the swap in C# memory
-        int temp = currentTask.SortOrder;
-        currentTask.SortOrder = targetTask.SortOrder;
-        targetTask.SortOrder = temp;
+        (current.SortOrder, target.SortOrder) = (target.SortOrder, current.SortOrder);
 
-        // wait for the first update to finish
-        var res1 = await Http.PutAsJsonAsync($"http://localhost:8080/api/tasks/{currentTask.Id}", currentTask);
-        
-        // wait for the second update to finish
-        var res2 = await Http.PutAsJsonAsync($"http://localhost:8080/api/tasks/{targetTask.Id}", targetTask);
+        var task1 = Http.PutAsJsonAsync($"http://localhost:8080/api/tasks/{current.Id}", current);
+        var task2 = Http.PutAsJsonAsync($"http://localhost:8080/api/tasks/{target.Id}", target);
 
-        if (res1.IsSuccessStatusCode && res2.IsSuccessStatusCode)
-        {
-            // refresh the list from the database
-            await LoadTasks(); 
-        }
+        await Task.WhenAll(task1, task2);
+
+        await LoadTasks(); 
     }
+
+
+    RenderFragment RenderTaskItem(List<TaskItem> list, TaskItem task, int index) => __builder =>
+    {
+        <div class="d-flex align-items-center">
+            <div class="me-3 d-flex flex-column">
+                @if (index > 0)
+                {
+                    <button class="btn btn-link btn-sm p-0 text-decoration-none" @onclick="() => MoveTask(list, index, -1)">▲</button>
+                }
+                @if (index < list.Count - 1)
+                {
+                    <button class="btn btn-link btn-sm p-0 text-decoration-none" @onclick="() => MoveTask(list, index, 1)">▼</button>
+                }
+            </div>
+
+            <div>
+                <strong style='text-decoration: @(task.Status == "DONE" ? "line-through" : "none")'>@task.Title</strong>
+                <p class="mb-0 small text-muted">@task.Description</p>
+            </div>
+        </div>
+
+        <div>
+            @if (task.Status != "DONE")
+            {
+                <button class="btn btn-outline-success btn-sm me-2" @onclick="() => MarkAsDone(task)">Done</button>
+            }
+            <button class="btn btn-danger btn-sm" @onclick="() => DeleteTask(task.Id!.Value)">Delete</button>
+        </div>
+    };
 
 }

@@ -21,7 +21,7 @@ public class TaskController {
     // Get all tasks
     @GetMapping
     public List<Task> getAllTasks() {
-        return taskRepository.findAllByOrderBySortOrderAsc();
+        return taskRepository.findAllByOrderByStatusDescSortOrderAsc();
     }
 
     // Create a new task
