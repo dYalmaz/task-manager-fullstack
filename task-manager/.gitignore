@@ -1,0 +1,19 @@
+# IDEs
+.idea/
+.vs/
+*.swp
+*.iml
+
+# .NET / Blazor (Frontend)
+**/[Bb]in/
+**/[Oo]bj/
+*.user
+*.lock.json
+
+# Java / Maven (Backend)
+**/target/
+*.class
+
+# OS Files
+.DS_Store
+Thumbs.db
