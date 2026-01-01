@@ -24,6 +24,8 @@ public class Task {
     @Enumerated(EnumType.STRING)
     private TaskStatus status;
 
+    @Column(name = "sort_order")
+    private int sortOrder;
 
     // --- CONSTRUCTORS ---
     public Task() {
@@ -49,4 +51,7 @@ public class Task {
 
     public TaskStatus getStatus() { return status; }
     public void setStatus(TaskStatus status) { this.status = status; }
+
+    public int getSortOrder() { return sortOrder; }
+    public void setSortOrder(int sortOrder) { this.sortOrder = sortOrder; }
 }

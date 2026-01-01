@@ -21,7 +21,7 @@ public class TaskController {
     // Get all tasks
     @GetMapping
     public List<Task> getAllTasks() {
-        return taskRepository.findAll();
+        return taskRepository.findAllByOrderBySortOrderAsc();
     }
 
     // Create a new task
@@ -46,6 +46,7 @@ public class TaskController {
         task.setTitle(taskDetails.getTitle());
         task.setDescription(taskDetails.getDescription());
         task.setStatus(taskDetails.getStatus());
+        task.setSortOrder(taskDetails.getSortOrder());
 
         // Save the updated task back to the database
         return taskRepository.save(task);

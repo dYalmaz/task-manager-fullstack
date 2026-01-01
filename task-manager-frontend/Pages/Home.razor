@@ -34,15 +34,36 @@ else
     </div>
 
     <ul class="list-group">
-        @foreach (var task in tasks.Where(t => showCompleted || t.Status != "DONE"))
+        @{
+            // Create a filtered list once per render so indexing matches what the user sees
+            var displayList = tasks?.Where(t => showCompleted || t.Status != "DONE").ToList() ?? new List<TaskItem>();
+        }
+
+        @for (int i = 0; i < displayList.Count; i++)
         {
+            var task = displayList[i];
+            int index = i; // Capture index for the lambda buttons
+
             <li class="list-group-item d-flex justify-content-between align-items-center">
-                <div>
-                    <strong style='text-decoration: @(task.Status == "DONE" ? "line-through" : "none")'>
-                        @task.Title
-                    </strong> 
-                    - <span class="badge @(task.Status == "DONE" ? "bg-success" : "bg-info")">@task.Status</span>
-                    <p class="mb-0 text-muted">@task.Description</p>
+                <div class="d-flex align-items-center">
+                    <div class="me-3 d-flex flex-column">
+                        @if (index > 0)
+                        {
+                            <button class="btn btn-link btn-sm p-0 text-decoration-none" @onclick="() => MoveTask(displayList, index, -1)">▲</button>
+                        }
+                        @if (index < displayList.Count - 1)
+                        {
+                            <button class="btn btn-link btn-sm p-0 text-decoration-none" @onclick="() => MoveTask(displayList, index, 1)">▼</button>
+                        }
+                    </div>
+
+                    <div>
+                        <strong style='text-decoration: @(task.Status == "DONE" ? "line-through" : "none")'>
+                            (@task.SortOrder)@task.Title
+                        </strong> 
+                        - <span class="badge @(task.Status == "DONE" ? "bg-success" : "bg-info")">@task.Status</span>
+                        <p class="mb-0 text-muted">@task.Description</p>
+                    </div>
                 </div>
                 
                 <div>
@@ -78,7 +99,7 @@ else
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error loading tasks: {ex.Message}");
+            Console.WriteLine($"Error fetching tasks: {ex.Message}");
         }
     }
 
@@ -125,6 +146,33 @@ else
     private void ToggleCompleted()
     {
         showCompleted = !showCompleted;
+    }
+
+
+    private async Task MoveTask(List<TaskItem> currentDisplayList, int currentIndex, int direction)
+    {
+        int targetIndex = currentIndex + direction;
+        if (targetIndex < 0 || targetIndex >= currentDisplayList.Count) return;
+
+        var currentTask = currentDisplayList[currentIndex];
+        var targetTask = currentDisplayList[targetIndex];
+
+        // Perform the swap in C# memory
+        int temp = currentTask.SortOrder;
+        currentTask.SortOrder = targetTask.SortOrder;
+        targetTask.SortOrder = temp;
+
+        // wait for the first update to finish
+        var res1 = await Http.PutAsJsonAsync($"http://localhost:8080/api/tasks/{currentTask.Id}", currentTask);
+        
+        // wait for the second update to finish
+        var res2 = await Http.PutAsJsonAsync($"http://localhost:8080/api/tasks/{targetTask.Id}", targetTask);
+
+        if (res1.IsSuccessStatusCode && res2.IsSuccessStatusCode)
+        {
+            // refresh the list from the database
+            await LoadTasks(); 
+        }
     }
 
 }
