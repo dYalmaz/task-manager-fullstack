@@ -5,6 +5,7 @@ import com.example.task.repository.TaskRepository;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/tasks") // All links will start with /api/tasks
@@ -24,7 +25,7 @@ public class TaskController {
 
     // Create a new task
     @PostMapping
-    public Task createTask(@RequestBody Task task) {
+    public Task createTask(@Valid@RequestBody Task task) {
         return taskRepository.save(task);
     }
 
