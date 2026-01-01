@@ -27,8 +27,14 @@ else
         </div>
     </div>
 
+    <div class="d-flex justify-content-end mb-3">
+        <button class="btn btn-secondary btn-sm" @onclick="ToggleCompleted">
+            @(showCompleted ? "Hide Completed" : "Show Completed")
+        </button>
+    </div>
+
     <ul class="list-group">
-        @foreach (var task in tasks)
+        @foreach (var task in tasks.Where(t => showCompleted || t.Status != "DONE"))
         {
             <li class="list-group-item d-flex justify-content-between align-items-center">
                 <div>
@@ -113,4 +119,12 @@ else
             await LoadTasks();
         }
     }
+
+
+    private bool showCompleted = true; // By default, show everything
+    private void ToggleCompleted()
+    {
+        showCompleted = !showCompleted;
+    }
+
 }
