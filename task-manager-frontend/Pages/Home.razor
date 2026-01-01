@@ -15,7 +15,7 @@
     .priority-LOW { border-left-color: #0dcaf0 !important; }
 </style>
 
-<h1>My Java-Powered Tasks</h1>
+<h1>My To Do List</h1>
 
 @if (tasks == null)
 {
@@ -56,9 +56,24 @@ else
         </button>
     </div>
 
+    <div class="input-group mb-4 shadow-sm">
+        <span class="input-group-text bg-white border-end-0">
+            <i class="bi bi-search"></i>
+        </span>
+        <input type="text" 
+            class="form-control border-start-0" 
+            placeholder="Search tasks..." 
+            @bind="searchTerm" 
+            @bind:event="oninput" />
+    </div>
+
     <div class="task-sections">
         @{
-            var visibleTasks = tasks?.Where(t => showCompleted || t.Status != "DONE").ToList() ?? new List<TaskItem>();
+            var visibleTasks = tasks?
+                .Where(t => (showCompleted || t.Status != "DONE") && 
+                            (string.IsNullOrWhiteSpace(searchTerm) || 
+                            t.Title.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)))
+                .ToList() ?? new List<TaskItem>();
             
             var activeTasks = visibleTasks.Where(t => t.Status != "DONE").ToList();
             var completedTasks = visibleTasks.Where(t => t.Status == "DONE").ToList();
@@ -100,6 +115,7 @@ else
 
 @code {
     private List<TaskItem>? tasks;
+    private string searchTerm = "";
     private TaskItem newTask = new TaskItem { Status = "TODO" };
 
     protected override async Task OnInitializedAsync()
@@ -215,5 +231,7 @@ else
             <button class="btn btn-danger btn-sm" @onclick="() => DeleteTask(task.Id!.Value)">Delete</button>
         </div>
     };
+
+
 
 }
