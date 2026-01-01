@@ -47,7 +47,7 @@ public class TaskController {
         task.setDescription(taskDetails.getDescription());
         task.setStatus(taskDetails.getStatus());
         task.setSortOrder(taskDetails.getSortOrder());
-
+        task.setPriority(taskDetails.getPriority());
         // Save the updated task back to the database
         return taskRepository.save(task);
     }

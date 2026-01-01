@@ -27,6 +27,9 @@ public class Task {
     @Column(name = "sort_order")
     private int sortOrder;
 
+    @Enumerated(EnumType.STRING)
+    private TaskPriority priority = TaskPriority.MEDIUM;
+
     // --- CONSTRUCTORS ---
     public Task() {
     }
@@ -54,4 +57,7 @@ public class Task {
 
     public int getSortOrder() { return sortOrder; }
     public void setSortOrder(int sortOrder) { this.sortOrder = sortOrder; }
+
+    public TaskPriority getPriority() { return priority; }
+    public void setPriority(TaskPriority priority) { this.priority = priority; }
 }
