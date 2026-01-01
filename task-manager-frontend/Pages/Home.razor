@@ -1,0 +1,93 @@
+﻿@page "/"
+@inject HttpClient Http
+
+<h1>My Java-Powered Tasks</h1>
+
+@if (tasks == null)
+{
+    <p><em>Loading tasks from Java API...</em></p>
+}
+else
+{
+
+    <div class="card p-3 mb-4 shadow-sm">
+        <h5 class="card-title">Add New Task</h5>
+        <div class="row g-2">
+            <div class="col-md-5">
+                <input @bind="newTask.Title" class="form-control" placeholder="Task Title (Required)" />
+            </div>
+            <div class="col-md-5">
+                <input @bind="newTask.Description" class="form-control" placeholder="Description" />
+            </div>
+            <div class="col-md-2">
+                <button class="btn btn-success w-100" @onclick="AddTask">
+                    Add Task
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <ul class="list-group">
+        @foreach (var task in tasks)
+        {
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                    <strong>@task.Title</strong> - <span class="badge bg-info">@task.Status</span>
+                    <p class="mb-0 text-muted">@task.Description</p>
+                </div>
+                
+                <button class="btn btn-danger btn-sm" @onclick="() => DeleteTask(task.Id ?? 0)">
+                    Delete
+                </button>
+            </li>
+        }
+    </ul>
+}
+
+@code {
+    private List<TaskItem>? tasks;
+    private TaskItem newTask = new TaskItem { Status = "TODO" };
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadTasks();
+    }
+
+    
+
+    private async Task LoadTasks()
+    {
+        try 
+        {
+            tasks = await Http.GetFromJsonAsync<List<TaskItem>>("http://localhost:8080/api/tasks");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading tasks: {ex.Message}");
+        }
+    }
+
+    private async Task AddTask()
+    {
+        // basic validation
+        if (string.IsNullOrWhiteSpace(newTask.Title)) return;
+
+        // send the POST request to the Java API
+        var response = await Http.PostAsJsonAsync("http://localhost:8080/api/tasks", newTask);
+
+        if (response.IsSuccessStatusCode)
+        {
+            newTask = new TaskItem { Status = "TODO" }; 
+            await LoadTasks(); 
+        }
+    }
+
+    private async Task DeleteTask(long id)
+    {
+        var response = await Http.DeleteAsync($"http://localhost:8080/api/tasks/{id}");
+        if (response.IsSuccessStatusCode)
+        {
+            await LoadTasks(); // Re-fetch the list to hide the deleted task
+        }
+    }
+}
