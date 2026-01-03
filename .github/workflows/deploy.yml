@@ -18,6 +18,9 @@ jobs:
       - name: Publish Build Assets
         run: dotnet publish task-manager-frontend/task-manager-frontend.csproj -c Release -o release --nologo
 
+      - name: Add .nojekyll
+        run: touch release/wwwroot/.nojekyll
+
       # This step fixes a known Blazor/GitHub Pages issue with routing
       - name: Change base-tag in index.html from / to task-manager-fullstack
         run: sed -i 's/<base href="\/" \/>/<base href="\/task-manager-fullstack\/" \/>/g' release/wwwroot/index.html
