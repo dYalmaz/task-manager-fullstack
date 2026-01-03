@@ -31,14 +31,15 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         
         configuration.setAllowedOrigins(Arrays.asList(
-            "http://localhost:5000",        // Local Blazor default
-            "https://localhost:5001",       // Local Blazor HTTPS
-            "https://dYalmaz.github.io"
+            "http://localhost:5000",
+            "https://localhost:5001",
+            "https://dyalmaz.github.io"
         ));
         
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("Content-Type", "Authorization"));
+        configuration.setAllowedHeaders(Arrays.asList("Content-Type", "Authorization", "X-Requested-With"));
         configuration.setAllowCredentials(true);
+        configuration.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
