@@ -127,7 +127,7 @@ else
     {
         try 
         {
-            tasks = await Http.GetFromJsonAsync<List<TaskItem>>("http://localhost:8080/api/tasks");
+            tasks = await Http.GetFromJsonAsync<List<TaskItem>>("api/tasks");
         }
         catch (Exception ex)
         {
@@ -144,7 +144,7 @@ else
         newTask.SortOrder = maxOrder + 1;
 
         // send the POST request to the Java API
-        var response = await Http.PostAsJsonAsync("http://localhost:8080/api/tasks", newTask);
+        var response = await Http.PostAsJsonAsync("api/tasks", newTask);
 
         if (response.IsSuccessStatusCode)
         {
@@ -155,7 +155,7 @@ else
 
     private async Task DeleteTask(long id)
     {
-        var response = await Http.DeleteAsync($"http://localhost:8080/api/tasks/{id}");
+        var response = await Http.DeleteAsync($"api/tasks/{id}");
         if (response.IsSuccessStatusCode)
         {
             await LoadTasks(); // Re-fetch the list to hide the deleted task
@@ -168,7 +168,7 @@ else
         task.Status = "DONE";
 
         // Send the PUT request to /api/tasks/{id}
-        var response = await Http.PutAsJsonAsync($"http://localhost:8080/api/tasks/{task.Id}", task);
+        var response = await Http.PutAsJsonAsync($"api/tasks/{task.Id}", task);
 
         if (response.IsSuccessStatusCode)
         {
@@ -194,8 +194,8 @@ else
 
         (current.SortOrder, target.SortOrder) = (target.SortOrder, current.SortOrder);
 
-        var task1 = Http.PutAsJsonAsync($"http://localhost:8080/api/tasks/{current.Id}", current);
-        var task2 = Http.PutAsJsonAsync($"http://localhost:8080/api/tasks/{target.Id}", target);
+        var task1 = Http.PutAsJsonAsync($"api/tasks/{current.Id}", current);
+        var task2 = Http.PutAsJsonAsync($"api/tasks/{target.Id}", target);
 
         await Task.WhenAll(task1, task2);
 
