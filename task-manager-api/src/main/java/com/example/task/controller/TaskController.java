@@ -9,7 +9,6 @@ import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/tasks")
-@CrossOrigin(origins = "https://dyalmaz.github.io", allowCredentials = "true")
 public class TaskController {
 
     private final TaskRepository taskRepository;
