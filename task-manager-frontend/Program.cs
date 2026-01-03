@@ -8,7 +8,7 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 
 builder.Services.AddScoped(sp => new HttpClient 
 { 
-    BaseAddress = new Uri("https://task-manager-wy2i.onrender.com/")
+    BaseAddress = new Uri("https://task-manager-wy2i.onrender.com/"),
     Timeout = TimeSpan.FromMinutes(3)
 });
 
