@@ -7,9 +7,9 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import jakarta.validation.Valid;
 
-@CrossOrigin(origins = "http://localhost:5011")
 @RestController
-@RequestMapping("/api/tasks") // All links will start with /api/tasks
+@RequestMapping("/api/tasks")
+@CrossOrigin(origins = "https://dyalmaz.github.io", allowCredentials = "true")
 public class TaskController {
 
     private final TaskRepository taskRepository;
